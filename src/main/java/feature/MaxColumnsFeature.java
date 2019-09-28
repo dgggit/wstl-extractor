@@ -1,5 +1,6 @@
 package feature;
 
+import detection.Detect;
 import org.jsoup.nodes.Element;
 
 import java.util.ArrayList;
@@ -12,7 +13,6 @@ import java.util.List;
 
 public class MaxColumnsFeature extends Feature {
 
-
     public MaxColumnsFeature(String type) {
         super(type, 6);
     }
@@ -22,6 +22,13 @@ public class MaxColumnsFeature extends Feature {
         for (Element row : element.getElementsByTag("tr")) {
             counts.add(row.getElementsByTag("td").size());
         }
-        this.value = Collections.max(counts);
+        try {
+            this.value = Collections.max(counts);
+        } catch (Exception e){
+            this.value = 0.0;
+            if(Detect.debug == true)
+                System.out.print("divzero ");
+        }
+
     }
 }

@@ -14,7 +14,13 @@ public class StdDevColumnsFeature extends Feature {
     }
 
     public void compute(Element element) {
+
         double[] counts = new double[element.getElementsByTag("tr").size()];
+        if(counts.length == 0){
+            this.value = 0.0;
+            return;
+        }
+
         int count = 0;
         for(Element row : element.getElementsByTag("tr")){
             counts[count] = (row.getElementsByTag("td").size());

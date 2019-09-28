@@ -2,13 +2,13 @@ package detection.model;
 
 
 import data.Example;
+import detection.Detect;
 import feature.Feature;
 import libsvm.*;
+import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by Petar on 07.07.2016.
@@ -17,13 +17,16 @@ import java.util.List;
 public abstract class DetectionModel {
 
     svm_model model;
-    List<Example> examples;
+    public List<Example> train_examples;
+    public List<Example> test_examples;
 
     public DetectionModel() {
+        this.train_examples = new ArrayList<Example>();
+        this.test_examples = new ArrayList<Example>();
+
     }
 
-    public abstract void setExamples(Elements elements);
-
+    public abstract void setExamples(int mode, List<Element> elements, List<Integer> labels, int fileID);
 
     public void train(List<Example> examples){
 
@@ -31,12 +34,12 @@ public abstract class DetectionModel {
         svm_parameter param=new svm_parameter();
         param.svm_type=svm_parameter.C_SVC;
         param.kernel_type=svm_parameter.RBF;
-        param.gamma=0.5;
+        param.gamma=0.01; // orig 0.5
         param.nu=0.5;
-        param.cache_size=20000;
-        param.C=1;
-        param.eps=0.001;
-        param.p=0.1;
+        param.cache_size=2000;
+        param.C=1;  // orig 1
+        param.eps=0.1; // orig 0.001
+        param.p=0.01; // orig 0.1
 
 
         //prepare data
@@ -75,10 +78,23 @@ public abstract class DetectionModel {
             prob.y[i]=labelTraining.get(i);
         }
 
+        System.out.println(numTrainingInstances);
+        //System.out.println(Arrays.toString(prob.y));
+
+        if(Detect.debug == true){
+            for(int i=0; i<prob.x.length ; i++){
+                for( int j=0; j<prob.x[i].length; j++){
+                    System.out.print(prob.x[i][j].value);
+                    System.out.print(" ");
+                }
+                System.out.println();
+
+            }
+        }
         this.model=svm.svm_train(prob,param);
     }
 
-    public void test(List<Example> examples){
+    public void test(List<Example> examples, List<Integer> result){
         //prepare data
         HashMap<Integer, HashMap<Integer, Double>> featuresTesting=new HashMap<Integer, HashMap<Integer, Double>>();
 
@@ -101,8 +117,7 @@ public abstract class DetectionModel {
             }
 
             double d=svm.svm_predict(this.model, x);
-
-            System.out.println(testInstance+"\t"+d);
+            result.add((int)d);
         }
     }
 }

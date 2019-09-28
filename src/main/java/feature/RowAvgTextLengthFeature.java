@@ -25,7 +25,11 @@ public class RowAvgTextLengthFeature extends Feature {
             result += (double) el.text().length();
         }
 
-        this.value = result/rowCount;
+        if(rowCount == 0){
+            this.value = 0.0;
+            return;
+        }
+        this.value = result/rowCount ;
     }
 
 }

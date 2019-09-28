@@ -1,5 +1,6 @@
 package feature;
 
+import detection.Detect;
 import org.jsoup.nodes.Element;
 
 import java.util.ArrayList;
@@ -20,13 +21,21 @@ public class AvgColumnsFeature extends Feature {
         for(Element row : element.getElementsByTag("tr")){
             counts.add(row.getElementsByTag("td").size());
         }
-        this.value = avg(counts);
+        this.value = Math.min(avg(counts) , 10000.0) ;
     }
 
     private double avg(List<Integer> counts) {
         int sum = 0;
         for(int count: counts) sum += count;
-        return sum/counts.size();
+
+        try{
+            float value = sum/counts.size();
+            return value;
+        } catch (Exception e) {
+            if(Detect.debug == true)
+                System.out.print("divzero ");
+            return 0.0;
+        }
     }
 
 

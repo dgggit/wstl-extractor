@@ -1,5 +1,6 @@
 package feature;
 
+import detection.Detect;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
@@ -30,6 +31,9 @@ public class AlphaNumRatioFeature extends Feature {
         for(int i=0; i < ratios.length; i++){
             sum += ratios[i];
         }
+        if(ratios.length == 0){
+            return 0.0;
+        }
         return sum/ratios.length;
     }
 
@@ -40,6 +44,17 @@ public class AlphaNumRatioFeature extends Feature {
             if(Character.isDigit(text.charAt(i))) digits++;
             if(Character.isLetter(text.charAt(i))) letters++;
         }
-        return digits/letters;
+        try{
+            if(letters == 0){
+                return 0.0;
+            }
+            float value = (float) digits / letters ;
+            return value;
+        } catch (Exception e) {
+            if(Detect.debug == true)
+                System.out.print("divzero ");
+            return 0.0;
+        }
+
     }
 }

@@ -13,12 +13,17 @@ import java.util.List;
  */
 public class TableDetectionModel extends DetectionModel {
 
-    public void setExamples(Elements elements){
+    public int id = 0;
+    public void setExamples(int mode, List<Element> elements, List<Integer> labels, int fileID){
         List<Feature> features;
-        int count = 0;
+        this.id = 0;
+        int tableID = 0;
 
-        for(Element element:elements){
+        for(int idx=0; idx<elements.size(); idx++){
+            tableID+=1;
+            Element element = elements.get(idx);
             features = new ArrayList<Feature>();
+
             features.add(new AlphaNumRatioFeature("continuous"));
             features.add(new AvgColumnsFeature("continuous"));
             features.add(new CountNonChildTagsFeature("continuous"));
@@ -33,8 +38,17 @@ public class TableDetectionModel extends DetectionModel {
             for(Feature feature : features){
                 feature.compute(element);
             }
-            Example example = new Example(count, element, 1, features);
-            examples.add(example);
+            // TODO label not always 1
+
+            int exampleID = fileID*1000000 + tableID;
+            Example example = new Example(this.id, element, labels.get(idx), features);
+            if(mode == 0){
+                train_examples.add(example);
+            }
+            else if(mode == 1){
+                test_examples.add(example);
+            }
+            this.id+=1;
         }
     }
 }

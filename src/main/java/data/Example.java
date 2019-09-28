@@ -3,6 +3,7 @@ package data;
 import feature.Feature;
 import org.jsoup.nodes.Element;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -36,5 +37,15 @@ public class Example {
 
     public List<Feature> getFeatures() {
         return features;
+    }
+
+    public List<Double> getFeatureValues() {
+
+        List<Double> result = new ArrayList<Double>();
+        for(Feature feature : features){
+            result.add(feature.getValue());
+        }
+        return result;
+
     }
 }

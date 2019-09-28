@@ -26,6 +26,10 @@ public class WordFreqFeature extends Feature {
         int wordCounter = 0;
         for(String token: tokens) if(token.equals(word)) wordCounter++;
 
+        if(tokens.length == 0){
+            this.value = 0.0;
+            return;
+        }
         this.value = wordCounter/(double)tokens.length;
     }
 
