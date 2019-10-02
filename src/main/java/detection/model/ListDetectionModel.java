@@ -2,6 +2,7 @@ package detection.model;
 
 import data.Example;
 import feature.*;
+import libsvm.svm_parameter;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
@@ -14,6 +15,20 @@ import java.util.List;
 public class ListDetectionModel extends DetectionModel {
 
     public int id = 0;
+
+    public ListDetectionModel(){
+
+        super();
+        this.param.svm_type= svm_parameter.C_SVC;
+        this.param.kernel_type=svm_parameter.RBF;
+        this.param.gamma=2; // orig 0.5
+        this.param.nu=0.5; // orig 0.5
+        this.param.cache_size=2000;
+        this.param.C=1;  // ori g 1
+        this.param.eps=0.001; // orig 0.001
+        this.param.p=1; // orig 0.1
+    }
+
     public void setExamples(int mode, List<Element> elements, List<Integer> labels, int fileID){
         List<Feature> features;
         this.id = 0;
@@ -33,6 +48,7 @@ public class ListDetectionModel extends DetectionModel {
                 features.add(new RowAvgTextLengthFeature("continuous"));
                 features.add(new TextLengthFeature("continuous"));
                 features.add(new WordFreqFeature("continuous", "specification"));
+                features.add(new ContainsDelimiterFeature("continuous"));
                 for (Feature feature : features) {
                     feature.compute(element);
                 }

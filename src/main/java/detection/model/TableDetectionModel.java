@@ -2,6 +2,7 @@ package detection.model;
 
 import data.Example;
 import feature.*;
+import libsvm.svm_parameter;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
@@ -13,7 +14,22 @@ import java.util.List;
  */
 public class TableDetectionModel extends DetectionModel {
 
+
     public int id = 0;
+
+    public TableDetectionModel(){
+
+        super();
+        this.param.svm_type= svm_parameter.C_SVC;
+        this.param.kernel_type=svm_parameter.RBF;
+        this.param.gamma=0.01; // orig 0.5
+        this.param.nu=0.5;
+        this.param.cache_size=2000;
+        this.param.C=1;  // orig 1
+        this.param.eps=0.1; // orig 0.001
+        this.param.p=0.01; // orig 0.1
+
+    }
     public void setExamples(int mode, List<Element> elements, List<Integer> labels, int fileID){
         List<Feature> features;
         this.id = 0;
@@ -35,12 +51,13 @@ public class TableDetectionModel extends DetectionModel {
             features.add(new StdDevColumnsFeature("continuous"));
             features.add(new TextLengthFeature("continuous"));
             features.add(new WordFreqFeature("continuous", "specification"));
+
+
             for(Feature feature : features){
                 feature.compute(element);
             }
             // TODO label not always 1
 
-            int exampleID = fileID*1000000 + tableID;
             Example example = new Example(this.id, element, labels.get(idx), features);
             if(mode == 0){
                 train_examples.add(example);

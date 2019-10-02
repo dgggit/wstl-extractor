@@ -19,10 +19,13 @@ public abstract class DetectionModel {
     svm_model model;
     public List<Example> train_examples;
     public List<Example> test_examples;
+    public svm_parameter param;
 
     public DetectionModel() {
         this.train_examples = new ArrayList<Example>();
         this.test_examples = new ArrayList<Example>();
+
+        this.param = new svm_parameter();
 
     }
 
@@ -31,16 +34,7 @@ public abstract class DetectionModel {
     public void train(List<Example> examples){
 
         // Preparing the SVM param
-        svm_parameter param=new svm_parameter();
-        param.svm_type=svm_parameter.C_SVC;
-        param.kernel_type=svm_parameter.RBF;
-        param.gamma=0.01; // orig 0.5
-        param.nu=0.5;
-        param.cache_size=2000;
-        param.C=1;  // orig 1
-        param.eps=0.1; // orig 0.001
-        param.p=0.01; // orig 0.1
-
+        svm_parameter param = this.param;
 
         //prepare data
         HashMap<Integer, HashMap<Integer, Double>> featuresTraining=new HashMap<Integer, HashMap<Integer, Double>>();

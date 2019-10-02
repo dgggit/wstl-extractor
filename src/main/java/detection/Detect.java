@@ -12,6 +12,7 @@ import data.Example;
 
 import java.io.FileReader;
 import java.io.File;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -28,10 +29,9 @@ public class Detect {
 
         // get model
         TableDetectionModel table_detect = new TableDetectionModel();
-        //ListDetectionModel list_detect = new ListDetectionModel();
+        ListDetectionModel list_detect = new ListDetectionModel();
 
         // get all inputs from html files.
-
         JSONArray infos = htmlIdGetter();
         Iterator<JSONObject> json_iter = infos.iterator();
 
@@ -83,7 +83,6 @@ public class Detect {
             }
         }
 
-        System.out.println(table_labels_valid.toString());
         int label0 = 0;
         int label1 = 0;
         for(int i=0;  i<table_labels_valid.size(); i++){
@@ -93,7 +92,20 @@ public class Detect {
                 label0+=1;
         }
 
-        System.out.println("There are "+table_labels_valid.size()+"datas.");
+        System.out.println("There are "+table_labels_valid.size()+"datas in TABLE.");
+        System.out.println(label1+" datas are labeled 1");
+        System.out.println(label0+" datas are labeled 0");
+
+        label0 = 0;
+        label1 = 0;
+        for(int i=0;  i<list_labels_valid.size(); i++){
+            if(list_labels_valid.get(i) == 1)
+                label1+=1;
+            else
+                label0+=1;
+        }
+
+        System.out.println("There are "+list_labels_valid.size()+"datas in LISTS.");
         System.out.println(label1+" datas are labeled 1");
         System.out.println(label0+" datas are labeled 0");
 
@@ -111,18 +123,25 @@ public class Detect {
         generateTrainTest(table_elems_valid, table_labels_valid, table_elems_train, table_labels_train, table_elems_test, table_labels_test);
         table_detect.setExamples( 0, table_elems_train, table_labels_train, fileID );
         table_detect.setExamples( 1, table_elems_test, table_labels_test, fileID );
-        // list_detect.setExamples( list_elems, list_labels );
+        generateTrainTest(list_elems_valid, list_labels_valid, list_elems_train, list_labels_train, list_elems_test, list_labels_test);
+        list_detect.setExamples( 0, list_elems_train, list_labels_train, fileID );
+        list_detect.setExamples( 1, list_elems_test, list_labels_test, fileID );
+
 
         // train TableDetection for all data.
         table_detect.train(table_detect.train_examples);
         // train ListDetection for all data.
+        list_detect.train(list_detect.train_examples);
 
         // predict.
-        List<Integer> result = new ArrayList<Integer>();
-        table_detect.test(table_detect.test_examples, result);
+        List<Integer> result_table = new ArrayList<Integer>();
+        table_detect.test(table_detect.test_examples, result_table);
+        List<Integer> result_list = new ArrayList<Integer>();
+        list_detect.test(list_detect.test_examples, result_list);
 
         //evaluate.
-        Evaluate.evaluate(table_labels_test, result);
+        Evaluate.evaluate(table_labels_test, result_table);
+        Evaluate.evaluate(list_labels_test, result_list);
 
     }
     public static JSONArray htmlIdGetter(){
@@ -146,7 +165,7 @@ public class Detect {
         return te;
     }
     public static Elements listElementsExtractor(Document doc){
-        Elements le = null;
+        Elements le = doc.select("li");
         return le;
     }
     public static void setLabels(JSONObject js, Elements table_elems, Elements list_elems,
@@ -158,10 +177,14 @@ public class Detect {
             Element element = table_elems.get(i);
             Elements rows = element.getElementsByTag("tr");
 
-            if(rows.size() == 0){
-                table_labels.add(-1);
-                continue;
-            }
+
+            // Eliminating some dirty data, which is now unnecessary
+
+//            if(rows.size() == 0){
+//                table_labels.add(-1);
+//                continue;
+//            }
+
             boolean found = false;
             for(Element row : rows){
                 Elements tup = row.getElementsByTag("td");
@@ -191,10 +214,49 @@ public class Detect {
                 table_labels.add(0);
         }
 
-        // list
-//        for(int i=0; i<list_elems.size(); i++){
-//
-//        }
+        // list.
+        for(int i=0; i<list_elems.size(); i++){
+            Element element = list_elems.get(i);
+            String text = element.text();
+
+            // Eliminating some dirty data, which is now unnecessary
+
+//            if(text.length() == 0){
+//                list_labels.add(-1);
+//                continue;
+//            }
+//            if(text.length() == 0 || !(text.contains(":") || text.contains(";")) ){
+//                list_labels.add(-1);
+//                continue;
+//            }
+
+
+            boolean found = false;
+            String attr = text.split(":|;")[0].strip();
+
+            //Search from JSON
+            JSONArray list_atts = (JSONArray) js.get("list_atts");
+            Iterator<String> iter = list_atts.iterator();
+
+            while(iter.hasNext()){
+                String kvStr = iter.next();
+                String key = kvStr.split(":")[0];
+
+
+                if(key.equals(attr)){
+                    found = true;
+                    //System.out.println("YES : "+text+"\t"+attr+"\t"+kvStr);
+                }
+            }
+            if(found) {
+                list_labels.add(1);
+            }
+            else{
+                list_labels.add(0);
+                //System.out.println("NO  : "+text+"\t"+attr);
+            }
+
+        }
 
     }
     public static void generateTrainTest(List<Element> el, List<Integer> la, List<Element> eltr, List<Integer> latr, List<Element> elte, List<Integer> late){
