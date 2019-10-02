@@ -27,6 +27,8 @@ public class ListDetectionModel extends DetectionModel {
         this.param.C=1;  // ori g 1
         this.param.eps=0.001; // orig 0.001
         this.param.p=1; // orig 0.1
+
+
     }
 
     public void setExamples(int mode, List<Element> elements, List<Integer> labels, int fileID){
